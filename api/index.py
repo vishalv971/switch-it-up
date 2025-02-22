@@ -7,6 +7,7 @@ from dotenv import load_dotenv, find_dotenv
 from api.src.db.supabase import (
     insert_data,
     select_data
+)
 
 load_dotenv(find_dotenv())
 
