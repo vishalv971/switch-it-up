@@ -32,6 +32,10 @@ export function ConvAI() {
         return;
       }
 
+      // call db to see if user has held previous conversations
+
+      // override prompt to include user's name and previous conversations and then start conversation
+
       const conv = await Conversation.startSession({
         agentId: 'vtmCVSkOxmw9xSFMaHMq',
         overrides: {
