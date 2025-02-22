@@ -244,3 +244,33 @@ async def notion_callback(request: Request):
             status_code=500,
             detail=f"Server error: {str(e)}"
         )
+
+
+@app.get("/api/py/notion/status/{user_id}")
+async def get_notion_status(user_id: str):
+    try:
+        # Query the database for notion integration
+        result = select_data(
+            supabase=supabase,
+            table="notion_integrations",
+            columns="*",
+            filters={"user_id": user_id},
+            limit=1
+        )
+
+        logger.info(f"Notion status query result: {result}")
+
+        is_connected = len(result) > 0
+        workspace_name = result[0].get('workspace_name', '') if is_connected else None
+
+        return {
+            "is_connected": is_connected,
+            "workspace_name": workspace_name
+        }
+
+    except Exception as e:
+        logger.error(f"Error checking Notion status: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to check Notion integration status: {str(e)}"
+        )

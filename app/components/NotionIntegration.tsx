@@ -1,20 +1,28 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { LinkIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { useUser } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
+
+interface NotionStatus {
+  is_connected: boolean;
+  workspace_name: string | null;
+}
 
 export function NotionIntegration() {
   const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [status, setStatus] = useState<NotionStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const getNotionAuthUrl = () => {
-    const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const redirectUri = encodeURIComponent(currentUrl);
-    return `https://api.notion.com/v1/oauth/authorize?client_id=1a0d872b-594c-8054-9f9e-003760118d32&response_type=code&owner=user&redirect_uri=${redirectUri}`;
-  };
+  useEffect(() => {
+    if (user) {
+      checkNotionStatus();
+    }
+  }, [user]);
 
   useEffect(() => {
     // Handle the OAuth callback
@@ -24,9 +32,25 @@ export function NotionIntegration() {
     }
   }, [searchParams]);
 
+  const checkNotionStatus = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/py/notion/status/${user?.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch Notion status');
+      }
+      const data = await response.json();
+      setStatus(data);
+    } catch (error) {
+      console.error('Error checking Notion status:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleNotionCallback = async (code: string) => {
     try {
-      const currentUrl = window.location.href.split('?')[0]; // Get base URL without query params
+      const currentUrl = window.location.href.split('?')[0];
       const response = await fetch('/api/py/notion/callback', {
         method: 'POST',
         headers: {
@@ -43,15 +67,20 @@ export function NotionIntegration() {
         throw new Error('Failed to exchange code for token');
       }
 
-      // Refresh the page or update UI state
-      router.refresh();
+      // Refresh the status
+      await checkNotionStatus();
+      // Clear the URL parameters
+      router.replace('/settings');
     } catch (error) {
       console.error('Error handling Notion callback:', error);
     }
   };
 
   const handleNotionLink = () => {
-    window.location.href = getNotionAuthUrl();
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const redirectUri = encodeURIComponent(currentUrl);
+    const authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=1a0d872b-594c-8054-9f9e-003760118d32&response_type=code&owner=user&redirect_uri=${redirectUri}`;
+    window.location.href = authUrl;
   };
 
   return (
@@ -66,16 +95,30 @@ export function NotionIntegration() {
         </svg>
         <div>
           <h3 className="font-medium text-gray-900">Notion</h3>
-          <p className="text-xs sm:text-sm text-gray-500">Link your Notion workspace</p>
+          <p className="text-xs sm:text-sm text-gray-500">
+            {isLoading ? 'Checking status...' :
+             status?.is_connected ? `Connected to ${status.workspace_name || 'Notion workspace'}` :
+             'Link your Notion workspace'}
+          </p>
         </div>
       </div>
-      <button
-        className="flex items-center justify-center p-2 rounded-full bg-green-600 hover:bg-green-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-        onClick={handleNotionLink}
-        aria-label="Link to Notion"
-      >
-        <LinkIcon className="h-5 w-5 text-white" />
-      </button>
+      {!isLoading && (
+        status?.is_connected ? (
+          <div className="flex items-center text-green-600">
+            <CheckCircleIcon className="h-5 w-5" />
+            <span className="ml-2 text-sm font-medium">Connected</span>
+          </div>
+        ) : (
+          <button
+            className="flex items-center justify-center p-2 rounded-full bg-green-600 hover:bg-green-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            onClick={handleNotionLink}
+            aria-label="Link to Notion"
+          >
+            <LinkIcon className="h-5 w-5 text-white" />
+          </button>
+        )
+      )}
     </div>
   );
 }
+
