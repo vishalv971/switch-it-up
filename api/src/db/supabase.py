@@ -1,16 +1,15 @@
 import os
-from typing import Any, Dict, List, Optional, Union
 from supabase import Client
 
 
 
 def insert_data(
-    supabase: Client,
-    table: str,
-    data: Union[Dict[str, Any], List[Dict[str, Any]]],
-    upsert: bool = False,
-    returning: str = "uuid"
-) -> Dict[str, Any]:
+    supabase,
+    table,
+    data,
+    upsert = False,
+    returning = "uuid"
+):
 
     try:
         query = supabase.table(table)
@@ -43,14 +42,14 @@ def insert_data(
     
 
 def select_data(
-    supabase: Client,
-    table: str,
-    columns: str = "*",
-    filters: Optional[Dict[str, Any]] = None,
-    order_by: Optional[Dict[str, str]] = None,
-    limit: Optional[int] = None,
-    offset: Optional[int] = None
-) -> List[Dict]:
+    supabase,
+    table,
+    columns = "*",
+    filters = None,
+    order_by = None,
+    limit = None,
+    offset = None
+):
 
     query = supabase.table(table).select(columns)
     
