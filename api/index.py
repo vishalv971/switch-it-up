@@ -274,3 +274,67 @@ async def get_notion_status(user_id: str):
             status_code=500,
             detail=f"Failed to check Notion integration status: {str(e)}"
         )
+
+
+@app.post("/api/py/conversations")
+async def create_conversation(request: Request):
+    try:
+        data = await request.json()
+        user_id = data.get('user_id')
+        conversation_id = data.get('conversation_id')
+
+        # Insert the conversation into your database
+        result = insert_data(
+            supabase=supabase,
+            table="conversations",
+            data={"user_id": user_id, "conversation_id": conversation_id}
+        )
+
+        if not result['success']:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to create conversation record"
+            )
+
+        return {"status": "success"}
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error: {str(e)}"
+        )
+
+@app.get("/api/py/conversations/latest/{user_id}")
+async def get_latest_conversation(user_id: str):
+    try:
+        # Query the database for the latest conversation
+        result = select_data(
+            supabase=supabase,
+            table="conversations",
+            columns="*",
+            filters={"user_id": user_id},
+            order_by={"created_at": "desc"},
+            limit=1
+        )
+
+        print(result)
+
+        if not result:
+            raise HTTPException(
+                status_code=404,
+                detail="No conversations found"
+            )
+
+        return result[0]
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error: {str(e)}"
+        )
+
+

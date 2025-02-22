@@ -4,7 +4,6 @@ import { useCallback, useState, useEffect } from 'react';
 import { Conversation } from "@11labs/client";
 import { useUser } from '@clerk/nextjs';
 import { PhoneIcon, MicrophoneIcon, XCircleIcon } from '@heroicons/react/24/outline';
-import { option } from 'yargs';
 
 export function ConvAI() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -58,6 +57,12 @@ export function ConvAI() {
     }
   }
 
+  async function getLatestConversationId() {
+    const response = await fetch(`/api/py/conversations/latest/${user?.id}`);
+    const data = await response.json();
+    return data.conversation_id;
+  }
+
 
   async function startConversation() {
     try {
@@ -71,11 +76,11 @@ export function ConvAI() {
       // Tool calling function
       const clientTools = {
         get_last_conversation: async () => {
-          // Fetch customer details (e.g., from an API) passing user_id get latest conversation id 
+          // Fetch customer details (e.g., from an API) passing user_id get latest conversation id
           const apiKey = process.env.NEXT_PUBLIC_XI_API_KEY;
-          let converstaionId = `JMeU5LxuOuwGZqad3tep`
+          let converstaionId = await getLatestConversationId();
           const url = `https://api.elevenlabs.io/v1/convai/conversations/${converstaionId}`;
-          const options = {method: 'GET', headers: {'xi-api-key': apiKey}}; 
+          const options = {method: 'GET', headers: {'xi-api-key': apiKey}};
           try {
             const response = await fetch(url, options);
             const data = await response.json();
@@ -86,12 +91,11 @@ export function ConvAI() {
             {
               return "This user has no past conversations"
             }
-          
+
           } catch (error) {
             console.error('Error fetching conversation:', error);
             return "This user has no past conversations"
           }
-
         }
       };
 
@@ -107,7 +111,7 @@ export function ConvAI() {
           setIsConnected(true);
           setIsSpeaking(true);
           console.log('Connected');
-          
+
         },
         onDisconnect: () => {
           setIsConnected(false);
@@ -137,6 +141,23 @@ export function ConvAI() {
     if (!conversation) return;
     try {
       await conversation.endSession();
+      console.log('Conversation ended');
+
+      const response = await fetch('/api/py/conversations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user?.id,
+          conversation_id: conversation.getId()
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save conversation data');
+      }
+
       setConversation(null);
     } catch (error) {
       console.error('Error ending conversation:', error);
