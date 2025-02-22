@@ -37,8 +37,8 @@ storage3==0.11.3
 strenum==0.4.15
 supabase==2.13.0
 supafunc==0.9.3
-typing==3.10.0.0
-typing-extensions==4.12.2
+typing
+typing-extensions
 urllib3==2.3.0
 uvicorn==0.34.0
 websockets==14.2
