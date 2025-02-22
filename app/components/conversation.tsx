@@ -4,6 +4,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { Conversation } from "@11labs/client";
 import { useUser } from '@clerk/nextjs';
 import { PhoneIcon, MicrophoneIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { option } from 'yargs';
 
 export function ConvAI() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -57,6 +58,7 @@ export function ConvAI() {
     }
   }
 
+
   async function startConversation() {
     try {
       setError(null);
@@ -66,6 +68,33 @@ export function ConvAI() {
         return;
       }
 
+      // Tool calling function
+      const clientTools = {
+        get_last_conversation: async () => {
+          // Fetch customer details (e.g., from an API) passing user_id get latest conversation id 
+          const apiKey = process.env.NEXT_PUBLIC_XI_API_KEY;
+          let converstaionId = `JMeU5LxuOuwGZqad3tep`
+          const url = `https://api.elevenlabs.io/v1/convai/conversations/${converstaionId}`;
+          const options = {method: 'GET', headers: {'xi-api-key': apiKey}}; 
+          try {
+            const response = await fetch(url, options);
+            const data = await response.json();
+            if (response.ok) {
+              return data.analysis.transcript_summary
+            }
+            else
+            {
+              return "This user has no past conversations"
+            }
+          
+          } catch (error) {
+            console.error('Error fetching conversation:', error);
+            return "This user has no past conversations"
+          }
+
+        }
+      };
+
       const conv = await Conversation.startSession({
         agentId: 'vtmCVSkOxmw9xSFMaHMq',
         overrides: {
@@ -73,10 +102,12 @@ export function ConvAI() {
             firstMessage: `Hey, ${user?.firstName}, how's it going?`
           }
         },
+        clientTools: clientTools,
         onConnect: () => {
           setIsConnected(true);
           setIsSpeaking(true);
           console.log('Connected');
+          
         },
         onDisconnect: () => {
           setIsConnected(false);

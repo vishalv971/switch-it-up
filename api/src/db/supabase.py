@@ -42,7 +42,7 @@ def insert_data(
 
 def select_data(
     supabase,
-    table,
+    table='conversations',
     columns = "*",
     filters = None,
     order_by = None,
@@ -80,3 +80,16 @@ def select_data(
     except Exception as e:
         print(f"Error executing query: {str(e)}")
         return []
+
+
+def get_latest_conversation(
+    supabase, 
+    table,
+    columns = "*",
+    filters = None,
+    order_by = None,
+    limit = None,
+    offset = None
+):
+
+    query = supabase.table(table).select(columns)
