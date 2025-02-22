@@ -6,7 +6,7 @@
     "fastapi-dev": "uv sync && uv run uvicorn api.index:app --reload",
     "next-dev": "next dev",
     "dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\"",
-    "build": "next build && curl -LsSf https://github.com/astral-sh/uv/releases/latest/download/uv-installer.sh | sh && uv sync",
+    "build": "next build && curl -LsSf https://github.com/astral-sh/uv/releases/latest/download/uv-installer.sh | sh && $HOME/.local/bin/uv sync",
     "start": "next start",
     "lint": "next lint"
   },
