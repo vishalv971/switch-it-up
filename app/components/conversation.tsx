@@ -76,25 +76,39 @@ export function ConvAI() {
       // Tool calling function
       const clientTools = {
         get_last_conversation: async () => {
-          // Fetch customer details (e.g., from an API) passing user_id get latest conversation id
-          const apiKey = process.env.NEXT_PUBLIC_XI_API_KEY;
-          let converstaionId = await getLatestConversationId();
-          const url = `https://api.elevenlabs.io/v1/convai/conversations/${converstaionId}`;
-          const options = {method: 'GET', headers: {'xi-api-key': apiKey}};
+          if (!user) return "No past conversations available";
           try {
-            const response = await fetch(url, options);
-            const data = await response.json();
-            if (response.ok) {
-              return data.analysis.transcript_summary
-            }
-            else
-            {
-              return "This user has no past conversations"
+            const apiKey = process.env.NEXT_PUBLIC_XI_API_KEY;
+            if (!apiKey) {
+              console.error('XI API key not configured');
+              return "Error: API key not configured";
             }
 
+            const conversationId = await getLatestConversationId();
+            if (!conversationId) {
+              return "No past conversations found";
+            }
+
+            const url = `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`;
+            const options = {
+              method: 'GET',
+              headers: {
+                'xi-api-key': apiKey
+              } as Record<string, string>
+            };
+
+            const response = await fetch(url, options);
+            const data = await response.json();
+
+            if (response.ok) {
+              return data.analysis.transcript_summary;
+            } else {
+              console.error('Error fetching conversation:', data);
+              return "Error fetching past conversations";
+            }
           } catch (error) {
             console.error('Error fetching conversation:', error);
-            return "This user has no past conversations"
+            return "Error fetching past conversations";
           }
         }
       };
