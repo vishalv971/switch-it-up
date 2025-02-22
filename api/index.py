@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import hmac
 import hashlib
 from pathlib import Path
+import logging
 
 
 from api.src.db.supabase import (
@@ -21,6 +22,12 @@ key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 SUPABASE_TABLE = os.environ.get("SUPABASE_TABLE")
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 ### Create FastAPI instance with custom docs and openapi url
 app = FastAPI(docs_url="/api/py/docs", openapi_url="/api/py/openapi.json")
@@ -40,8 +47,8 @@ async def clerk_webhook(request: Request, svix_id: str = Header(None), svix_time
         # Get the raw request body
         payload = await request.body()
 
-        print(signing_secret)
-        print(payload)
+        logger.info(f"Signing secret: {signing_secret}")
+        logger.info(f"Payload: {payload}")
 
         # Verify the webhook signature
         signature_header = svix_signature.split(" ")
@@ -50,7 +57,7 @@ async def clerk_webhook(request: Request, svix_id: str = Header(None), svix_time
         # Create message to verify
         message = f"{svix_id}.{svix_timestamp}.{payload.decode()}"
 
-        print(message)
+        logger.info(f"Message: {message}")
 
         # Verify at least one signature matches
         is_valid = False
@@ -64,19 +71,18 @@ async def clerk_webhook(request: Request, svix_id: str = Header(None), svix_time
         if not is_valid:
             raise HTTPException(status_code=400, detail="Invalid signature")
 
-        print("Valid signature")
+        logger.info("Valid signature")
 
         # Parse the webhook payload
         webhook_data = await request.json()
 
         # Handle the webhook event
         if webhook_data["type"] == "user.created":
-
-            print("User created if block")
+            logger.info("User created event received")
             # Extract user data
             user_data = webhook_data["data"]
 
-            print(user_data)
+            logger.info(f"User data: {user_data}")
 
             # Insert the user into your database
             result = insert_data(
@@ -89,7 +95,7 @@ async def clerk_webhook(request: Request, svix_id: str = Header(None), svix_time
                 }
             )
 
-            print(result)
+            logger.info(f"Database insert result: {result}")
 
             if not result['success']:
                 raise HTTPException(
