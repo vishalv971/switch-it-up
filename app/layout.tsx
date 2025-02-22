@@ -10,8 +10,8 @@ import {
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Switch it up",
-  description: "Generated with love by Rohit, Ankush & Vishal",
+  title: "Switch it up - Your AI Voice Companion",
+  description: "An empathetic voice assistant that helps you manage stress, stay organized, and find your calm",
 };
 
 export default function RootLayout({
@@ -22,9 +22,15 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
+        <head>
+          <link
+            rel="stylesheet"
+            href="https://api.fontshare.com/v2/css?f[]=degular@400,500,600,700&display=swap"
+          />
+        </head>
         <body className={`${inter.className} antialiased`}>
           <header className="flex justify-between items-center p-4 gap-4 h-16 bg-white shadow-sm">
-            <div className="text-xl font-bold text-gray-900">Switch it up</div>
+            <div className="text-xl font-bold text-gray-900 font-degular">Switch it up</div>
             <div>
               <SignedIn>
                 <UserButton afterSignOutUrl="/" />
