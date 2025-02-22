@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Conversation } from "@11labs/client";
 import { useUser } from '@clerk/nextjs';
 
@@ -12,6 +12,13 @@ export function ConvAI() {
 
   const { user } = useUser();
 
+  useEffect(() => {
+    if (user) {
+      saveUserToDatabase()
+        .catch(error => console.error('Error saving user on load:', error));
+    }
+  }, [user]);
+
   async function requestMicrophonePermission() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -20,6 +27,33 @@ export function ConvAI() {
     } catch (error) {
       console.error('Microphone permission denied:', error);
       return { success: false, stream: null };
+    }
+  }
+
+  async function saveUserToDatabase() {
+    console.log('Saving user to database');
+    if (!user) return;
+    try {
+      const response = await fetch('/api/py/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          email: user.emailAddresses[0].emailAddress,
+          name: user.firstName + " " + user.lastName
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save user data');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error saving user data:', error);
+      throw error;
     }
   }
 
