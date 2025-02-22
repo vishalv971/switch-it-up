@@ -33,11 +33,15 @@ def hello_fast_api():
 @app.post("/api/webhooks/clerk")
 async def clerk_webhook(request: Request, svix_id: str = Header(None), svix_timestamp: str = Header(None), svix_signature: str = Header(None)):
     try:
+
         # Get the webhook signing secret from your environment variables
         signing_secret = os.environ.get("CLERK_WEBHOOK_SECRET")
 
         # Get the raw request body
         payload = await request.body()
+
+        print(signing_secret)
+        print(payload)
 
         # Verify the webhook signature
         signature_header = svix_signature.split(" ")
@@ -45,6 +49,8 @@ async def clerk_webhook(request: Request, svix_id: str = Header(None), svix_time
 
         # Create message to verify
         message = f"{svix_id}.{svix_timestamp}.{payload.decode()}"
+
+        print(message)
 
         # Verify at least one signature matches
         is_valid = False
@@ -58,13 +64,19 @@ async def clerk_webhook(request: Request, svix_id: str = Header(None), svix_time
         if not is_valid:
             raise HTTPException(status_code=400, detail="Invalid signature")
 
+        print("Valid signature")
+
         # Parse the webhook payload
         webhook_data = await request.json()
 
         # Handle the webhook event
         if webhook_data["type"] == "user.created":
+
+            print("User created if block")
             # Extract user data
             user_data = webhook_data["data"]
+
+            print(user_data)
 
             # Insert the user into your database
             result = insert_data(
@@ -76,6 +88,8 @@ async def clerk_webhook(request: Request, svix_id: str = Header(None), svix_time
                     "name": user_data.get("first_name", "") + " " + user_data.get("last_name", ""),
                 }
             )
+
+            print(result)
 
             if not result['success']:
                 raise HTTPException(
