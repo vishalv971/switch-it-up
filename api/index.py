@@ -20,7 +20,6 @@ load_dotenv(env_path)
 url: str = os.getenv("SUPABASE_URL")
 key: str = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
-SUPABASE_TABLE = os.getenv("SUPABASE_TABLE")
 
 # Configure logging
 logging.basicConfig(
@@ -45,7 +44,7 @@ async def user(request: Request):
         # Insert the user into your database
         result = insert_data(
             supabase=supabase,
-            table=SUPABASE_TABLE,
+            table="users",
             data={
                 "user_id": data['user_id'],
                 "email": data['email'],
@@ -70,4 +69,69 @@ async def user(request: Request):
         raise HTTPException(
             status_code=500,
             detail=f"Server error: {str(e)}"
+        )
+
+
+@app.post("/api/py/conversations")
+async def user(request: Request):
+    try:
+        data = await request.json()
+
+        # Insert the user into your database
+        result = insert_data(
+            supabase=supabase,
+            table="conversations",
+            data={
+                "user_id": data['user_id'],
+                "conversation_id": data['conversation_id']
+            },
+            upsert=True
+        )
+
+        logger.info(f"Database insert result: {result}")
+
+        if not result['success']:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to create conversation record: {result['error']}"
+            )
+
+        return {"status": "success"}
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error: {str(e)}"
+        )
+
+
+@app.get("/api/py/conversations/{user_id}")
+async def get_user_conversations(user_id, limit = None, offset = None):
+    try:
+        # Set up the query parameters
+        filters = {"user_id": user_id}
+        order_by = {"created_at": "desc"}
+        
+        # Query the database using your wrapper function
+        result = select_data(
+            supabase=supabase,
+            table="conversations",
+            columns="conversation_id",
+            filters=filters,
+            order_by=order_by,
+            limit=limit,
+            offset=offset
+        )
+        
+        # Extract conversation IDs from the result
+        conversation_ids = [row["conversation_id"] for row in result]
+        
+        return {"conversation_ids": conversation_ids}
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch conversations: {str(e)}"
         )
