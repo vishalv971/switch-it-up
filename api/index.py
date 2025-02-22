@@ -77,7 +77,7 @@ async def user(request: Request):
     try:
         data = await request.json()
 
-        # Insert the user into your database
+        # Insert the conversations into your database
         result = insert_data(
             supabase=supabase,
             table="conversations",
@@ -113,7 +113,7 @@ async def get_user_conversations(user_id, limit = None, offset = None):
         # Set up the query parameters
         filters = {"user_id": user_id}
         order_by = {"created_at": "desc"}
-        
+
         # Query the database using your wrapper function
         result = select_data(
             supabase=supabase,
@@ -124,12 +124,12 @@ async def get_user_conversations(user_id, limit = None, offset = None):
             limit=limit,
             offset=offset
         )
-        
+
         # Extract conversation IDs from the result
         conversation_ids = [row["conversation_id"] for row in result]
-        
+
         return {"conversation_ids": conversation_ids}
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=500,

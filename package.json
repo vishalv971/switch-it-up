@@ -13,6 +13,7 @@
   "dependencies": {
     "@11labs/react": "^0.0.7",
     "@clerk/nextjs": "^6.12.0",
+    "@heroicons/react": "^2.2.0",
     "@types/node": "22.5.5",
     "@types/react": "18.3.8",
     "@types/react-dom": "18.3.0",

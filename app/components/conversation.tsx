@@ -3,6 +3,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import { Conversation } from "@11labs/client";
 import { useUser } from '@clerk/nextjs';
+import { PhoneIcon, MicrophoneIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 export function ConvAI() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -123,40 +124,42 @@ export function ConvAI() {
             onClick={startConversation}
             disabled={isConnected}
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M8 5.07C8 3.93 9.12 3.1 10.19 3.42l10.75 3.58c1.02.34 1.75 1.29 1.75 2.42v7.16c0 1.13-.73 2.08-1.75 2.42l-10.75 3.58c-1.07.32-2.19-.51-2.19-1.65V5.07z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M4 21V3M4 12H12" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+            <PhoneIcon className="w-6 h-6" />
             Try a call
           </button>
         ) : (
-          <div className="flex items-center gap-4">
-            {isSpeaking ? (
-              <div className="flex items-center gap-2 px-6 py-3 bg-gray-100 rounded-full text-gray-700">
-                <svg className="w-5 h-5 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3z"/>
-                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                </svg>
-                Speaking...
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 px-6 py-3 bg-green-50 rounded-full text-green-700">
-                <svg className="w-5 h-5 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                </svg>
+          <div className="flex flex-col items-center gap-6">
+            <div className="flex items-center justify-between w-full gap-4">
+              <div className="flex items-center gap-2 px-6 py-3 bg-green-600 rounded-full text-white">
+                <MicrophoneIcon className="w-5 h-5 animate-pulse" />
                 Listening...
               </div>
-            )}
 
-            <button
-              className="p-3 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors"
-              onClick={endConversation}
-            >
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M21 3L3 21M3 3L21 21" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
+              <button
+                className="p-3 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors"
+                onClick={endConversation}
+              >
+                <XCircleIcon className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Wave Visualization */}
+            <div className="flex items-center justify-center gap-1 h-8">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-1 bg-black rounded-full transition-all duration-300 ${
+                    isSpeaking
+                      ? 'animate-[wave_1s_ease-in-out_infinite]'
+                      : 'h-1'
+                  }`}
+                  style={{
+                    animationDelay: `${i * 0.1}s`,
+                    height: isSpeaking ? '2rem' : '0.25rem'
+                  }}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>
