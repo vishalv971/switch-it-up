@@ -1,11 +1,57 @@
 'use client';
 
+import { useEffect } from 'react';
 import { LinkIcon } from '@heroicons/react/24/outline';
+import { useUser } from '@clerk/nextjs';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export function NotionIntegration() {
+  const { user } = useUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const getNotionAuthUrl = () => {
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const redirectUri = encodeURIComponent(currentUrl);
+    return `https://api.notion.com/v1/oauth/authorize?client_id=1a0d872b-594c-8054-9f9e-003760118d32&response_type=code&owner=user&redirect_uri=${redirectUri}`;
+  };
+
+  useEffect(() => {
+    // Handle the OAuth callback
+    const code = searchParams.get('code');
+    if (code) {
+      handleNotionCallback(code);
+    }
+  }, [searchParams]);
+
+  const handleNotionCallback = async (code: string) => {
+    try {
+      const currentUrl = window.location.href.split('?')[0]; // Get base URL without query params
+      const response = await fetch('/api/py/notion/callback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code,
+          user_id: user?.id,
+          redirect_uri: currentUrl
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to exchange code for token');
+      }
+
+      // Refresh the page or update UI state
+      router.refresh();
+    } catch (error) {
+      console.error('Error handling Notion callback:', error);
+    }
+  };
+
   const handleNotionLink = () => {
-    // TODO: Implement Notion OAuth flow
-    console.log('Link to Notion clicked');
+    window.location.href = getNotionAuthUrl();
   };
 
   return (
