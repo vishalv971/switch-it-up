@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -664,6 +665,18 @@ wheels = [
 ]
 
 [[package]]
+name = "notion-client"
+version = "2.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b2/67/c1284de4877496a669ef3a5be36726491dace66261a78a78f73555bffe84/notion-client-2.3.0.tar.gz", hash = "sha256:c4b4ae04ce182eb89611d41544dac710049683a4d7309c4b22fde52f81cbcb39", size = 18790 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/ea/03f2fc5d3f5a42397c0ca5a210d5ed605959bc60d7f13d6e5bfa84d31488/notion_client-2.3.0-py2.py3-none-any.whl", hash = "sha256:6696bb057b7872477077d6a3bb4299c4a7924450e7d168174e79cbf8e01d9576", size = 13928 },
+]
+
+[[package]]
 name = "packaging"
 version = "24.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1047,6 +1060,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "google" },
     { name = "google-generativeai" },
+    { name = "notion-client" },
     { name = "pydantic" },
     { name = "supabase" },
     { name = "uvicorn" },
@@ -1060,6 +1074,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115.8" },
     { name = "google", specifier = ">=3.0.0" },
     { name = "google-generativeai", specifier = ">=0.8.4" },
+    { name = "notion-client", specifier = ">=2.3.0" },
     { name = "pydantic", specifier = ">=2.10.6" },
     { name = "supabase", specifier = ">=2.13.0" },
     { name = "uvicorn", specifier = ">=0.34.0" },

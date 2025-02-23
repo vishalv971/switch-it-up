@@ -15,6 +15,11 @@ from api.src.db.supabase import (
     select_data
 )
 
+from api.src.notion.notion import(
+    init_notion,
+    get_parent_pageid
+)
+
 # Load environment variables from .env.local in parent directory
 env_path = Path(__file__).parent.parent / '.env.local'
 load_dotenv(env_path)
@@ -211,7 +216,7 @@ async def notion_callback(request: Request):
             logger.info("Successfully obtained Notion access token")
 
             print(response_data)
-
+            conversations_page_id, todo_page_id = init_notion(response_data['workspace_id'])
             # Store the access token in the database
             result = insert_data(
                 supabase=supabase,
@@ -221,7 +226,9 @@ async def notion_callback(request: Request):
                     "access_token": response_data['access_token'],
                     "workspace_id": response_data['workspace_id'],
                     "workspace_name": response_data.get('workspace_name', ''),
-                    "bot_id": response_data['bot_id']
+                    "bot_id": response_data['bot_id'],
+                    "conversations_page_id" : conversations_page_id,
+                    "todo_page_id": todo_page_id
                 },
                 upsert=True
             )
