@@ -43,11 +43,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 font-degular">
-              Your AI Voice Companion for
-              <span className="text-blue-600"> Mental Wellness</span>
+              Turn <span className="text-red-600">hesitation</span> into <span className="text-emerald-600">action</span> with Flo
             </h1>
             <p className="text-xl text-gray-600 mb-8 font-degular">
-              An empathetic voice assistant that helps you manage stress, stay organized, and find your calm
+              A momentum based Conversational Voice AI Agent that detects hesitation, breaks mental friction, and gets you back in a state of flow
             </p>
             <div className="flex flex-col items-center gap-4">
               <button
@@ -80,20 +79,20 @@ export default function Home() {
 
             <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
               <CalendarIcon className="w-12 h-12 text-green-500 mb-4" />
-              <h3 className="text-lg font-semibold mb-2 font-degular">Smart Integration</h3>
-              <p className="text-gray-600">Seamlessly connects with Notion and Google Calendar to keep you organized</p>
+              <h3 className="text-lg font-semibold mb-2 font-degular">Seamless integrations with Notion and Google Calendar</h3>
+              <p className="text-gray-600">Automatically capture action items, tasks and events to keep you organised in real time.</p>
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
               <BoltIcon className="w-12 h-12 text-yellow-500 mb-4" />
-              <h3 className="text-lg font-semibold mb-2 font-degular">Task Management</h3>
-              <p className="text-gray-600">Identifies and helps you prioritize tasks through natural conversation</p>
+              <h3 className="text-lg font-semibold mb-2 font-degular">Smart task focus</h3>
+              <p className="text-gray-600">Understands when you're overwhelmed, refines your focus, and helps you take the next step -- without cognitve overload.</p>
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
               <MagnifyingGlassIcon className="w-12 h-12 text-blue-500 mb-4" />
-              <h3 className="text-lg font-semibold mb-2 font-degular">Web Intelligence</h3>
-              <p className="text-gray-600">Searches the web to provide you with relevant, helpful information</p>
+              <h3 className="text-lg font-semibold mb-2 font-degular">Just talk to browse</h3>
+              <p className="text-gray-600">Surface relevant insights, nudges you to take action and helps you stay on track.</p>
             </div>
           </div>
 
@@ -104,24 +103,24 @@ export default function Home() {
                 <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl font-bold text-blue-600">1</span>
                 </div>
-                <h3 className="text-lg font-semibold mb-2 font-degular">Start a Conversation</h3>
-                <p className="text-gray-600">Begin with a voice call to share what&apos;s on your mind</p>
+                <h3 className="text-lg font-semibold mb-2 font-degular">Speak your mind</h3>
+                <p className="text-gray-600">Start a voice call and share what's on your mind</p>
               </div>
 
               <div className="text-center">
                 <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl font-bold text-blue-600">2</span>
                 </div>
-                <h3 className="text-lg font-semibold mb-2 font-degular">Get Support</h3>
-                <p className="text-gray-600">Receive empathetic responses and practical suggestions</p>
+                <h3 className="text-lg font-semibold mb-2 font-degular">Get Deep Clarity</h3>
+                <p className="text-gray-600">Receive real time guidance and clarity to break through your non-trivial tasks</p>
               </div>
 
               <div className="text-center">
                 <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl font-bold text-blue-600">3</span>
                 </div>
-                <h3 className="text-lg font-semibold mb-2 font-degular">Stay Organized</h3>
-                <p className="text-gray-600">Let us handle the task management while you focus on wellness</p>
+                <h3 className="text-lg font-semibold mb-2 font-degular">Stay in Flow</h3>
+                <p className="text-gray-600">Our Agentic platform powered by ElevenLabs handles organisation so you can focus on momentum</p>
               </div>
             </div>
           </div>
@@ -140,10 +139,10 @@ export default function Home() {
         </div>
         <>
           <div className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 z-50">
-            <CallLogButton className="bg-blue-500 hover:bg-blue-600" />
+            <CallLogButton className="bg-blue-900 hover:bg-blue-900" />
           </div>
           <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50">
-            <SettingsButton className="bg-blue-500 hover:bg-blue-600" />
+            <SettingsButton className="bg-blue-900 hover:bg-blue-900" />
           </div>
         </>
       </SignedIn>
