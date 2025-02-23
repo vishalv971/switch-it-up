@@ -63,6 +63,41 @@ export function ConvAI() {
     return data.conversation_id;
   }
 
+  async function getAgent() { 
+    const apiKey = process.env.NEXT_PUBLIC_XI_API_KEY;
+    const url = "https://api.elevenlabs.io/v1/convai/agents/vtmCVSkOxmw9xSFMaHMq";
+    const options = {method: 'GET', headers: {'xi-api-key': apiKey}};
+    try {
+      const response = await fetch(url, options);
+      const data = await response.json();
+      console.log(data);
+      return data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
+  async function getLastestConversationSummary(conversationId: string) {
+    const apiKey = process.env.NEXT_PUBLIC_XI_API_KEY;
+    const url = `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`;
+    const options = {method: 'GET', headers: {'xi-api-key': apiKey}};
+    try {
+      const response = await fetch(url, options);
+      const data = await response.json();
+
+      if (response.ok) {
+        return data.analysis.transcript_summary;
+      } else {
+        console.error('Error fetching conversation:', data);
+        return null;
+      }
+    } catch (error) {
+      console.error(error); 
+      return null;
+    }
+  }
+
 
   async function startConversation() {
     try {
@@ -73,8 +108,23 @@ export function ConvAI() {
         return;
       }
 
+      let agent = await getAgent();
+
+      let systemPrompt = agent.conversation_config.agent.prompt.prompt;
+
+      let conversationId = await getLatestConversationId();
+
+      if (conversationId) {
+        let conversationSummary = await getLastestConversationSummary(conversationId);
+        console.log(`conversationSummary: ${conversationSummary}`);
+        if (conversationSummary) {
+          systemPrompt = systemPrompt + `This is a summary of the last conversation between you and the user: ${conversationSummary} bring this up after the first message from the user`
+        }
+      }
+  
       // Tool calling function
       const clientTools = {
+
         get_last_conversation: async () => {
           if (!user) return "No past conversations available";
           try {
@@ -112,26 +162,48 @@ export function ConvAI() {
           }
         }
       };
-
+      console.log(`systemPrompt: ${systemPrompt}`);
       const conv = await Conversation.startSession({
         agentId: 'vtmCVSkOxmw9xSFMaHMq',
         overrides: {
           agent: {
-            firstMessage: `Hey, ${user?.firstName}, how's it going?`
+            firstMessage: `Hey, ${user?.firstName}, how's it going?`,
+            prompt: {prompt: systemPrompt}
           }
         },
-        clientTools: clientTools,
         onConnect: () => {
           setIsConnected(true);
           setIsSpeaking(true);
           console.log('Connected');
-
         },
-        onDisconnect: () => {
+        onDisconnect: async () => {
           setIsConnected(false);
           setIsSpeaking(false);
           console.log('Disconnected');
           stream?.getTracks().forEach(track => track.stop());
+          console.log("Starting Disconect ");
+          try {
+            const response = await fetch('/api/py/conversations', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                user_id: user?.id,
+                conversation_id: conv.getId()
+              }),
+            });
+            console.log("Added conversation");
+            if (!response.ok) {
+              throw new Error('Failed to save conversation data');
+            }
+            console.log("Finished")
+
+            setConversation(null);
+          } catch (error) {
+            console.error('Error saving conversation data:', error);
+            setError('Failed to save conversation data');
+          }
         },
         onError: (error) => {
           console.error('Conversation error:', error);
@@ -150,6 +222,8 @@ export function ConvAI() {
       setError('Failed to start conversation');
     }
   }
+
+
 
   async function endConversation() {
     if (!conversation) return;
