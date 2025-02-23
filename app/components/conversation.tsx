@@ -63,7 +63,13 @@ export function ConvAI() {
   async function getLatestConversationId() {
     const response = await fetch(`/api/py/conversations/latest/${user?.id}`);
     const data = await response.json();
-    return data.conversation_id;
+    if(data.conversation_id) {
+      return data.conversation_id;
+    }
+    else {
+      console.log('No conversation id found');
+      return null;
+    }
   }
 
   async function getAgent() {
@@ -136,14 +142,19 @@ export function ConvAI() {
       let agent = await getAgent();
       let systemPrompt = agent.conversation_config.agent.prompt.prompt;
       let conversationId = await getLatestConversationId();
+      let firstMessage = agent.conversation_config.agent.firstMessage;
 
       if (conversationId) {
         let conversationSummary = await getLastestConversationSummary(conversationId);
         if (conversationSummary) {
           systemPrompt = systemPrompt + `This is a summary of the last conversation between you and the user: ${conversationSummary} bring this up after the first message from the user`
         }
+        firstMessage = `Hey, ${user?.firstName}, how's it going?`
       }
-  
+      else{
+        firstMessage = `Hey ${user?.firstName}, I am Flo, a conversational AI agent that helps you break through mental friction and get into a state of flow. How can I help you today?`
+      }
+
       // Tool calling function
       const clientTools = {
         list_events: async () => {
@@ -218,7 +229,7 @@ export function ConvAI() {
         // agentId: 'vtmCVSkOxmw9xSFMaHMq',
         overrides: {
           agent: {
-            firstMessage: `Hey, ${user?.firstName}, how's it going?`,
+            firstMessage: firstMessage,
             prompt: {prompt: systemPrompt}
           }
         },
