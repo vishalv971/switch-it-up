@@ -194,7 +194,7 @@ export function ConvAI() {
           console.log('Calling get_tasks');
           const response = await fetch(`/api/py/get-todo-list/${user?.id}`);
           const data = await response.json();
-          console.log(JSON.stringify(data));
+          console.log(data);
           return JSON.stringify(data);
         },
 
@@ -230,7 +230,7 @@ export function ConvAI() {
         overrides: {
           agent: {
             firstMessage: firstMessage,
-            prompt: {prompt: systemPrompt+`\n Some more context: This is the current date and time ${new Date().toLocaleString()}`}
+            prompt: {prompt: systemPrompt}
           }
         },
         clientTools: clientTools,
