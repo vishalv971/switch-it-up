@@ -2,6 +2,7 @@
 
 import { SignedIn } from "@clerk/nextjs";
 import { NotionIntegration } from "../components/NotionIntegration";
+import { GoogleCalendarIntegration } from "../components/GoogleCalendarIntegration";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -10,7 +11,7 @@ export default function SettingsPage() {
       <div className="min-h-screen bg-gray-50 py-6 sm:py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-degular">Settings</h1>
             <Link
               href="/"
               className="text-sm text-gray-600 hover:text-gray-900 flex items-center"
@@ -33,8 +34,11 @@ export default function SettingsPage() {
           </div>
 
           <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">Integrations</h2>
-            <NotionIntegration />
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 font-degular">Integrations</h2>
+            <div className="space-y-4">
+              <NotionIntegration />
+              <GoogleCalendarIntegration />
+            </div>
           </div>
         </div>
       </div>

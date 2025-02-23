@@ -24,7 +24,9 @@ env_path = Path(__file__).parent.parent / '.env.local'
 load_dotenv(env_path)
 
 url: str = os.getenv("SUPABASE_URL")
+print(url)
 key: str = os.getenv("SUPABASE_KEY")
+print(key)
 notion_client_id: str = os.getenv("NOTION_CLIENT_ID")
 notion_client_secret: str = os.getenv("NOTION_CLIENT_SECRET")
 supabase: Client = create_client(url, key)
@@ -343,4 +345,66 @@ async def get_latest_conversation(user_id: str):
             detail=f"Server error: {str(e)}"
         )
 
+@app.post("/api/py/google-calendars")
+async def google_calendars(request: Request):
+    try:
+        data = await request.json()
+        access_token = data.get('access_token')
+        user_id = data.get('user_id')
 
+        if not access_token:
+            raise HTTPException(
+                status_code=400,
+                detail="Access token is required"
+            )
+        print(user_id)
+        print(access_token)
+        # write to supabase table google_calendars
+        result = insert_data(
+            supabase=supabase,
+            table="google_integrations",
+            data={"user_id": user_id, "access_token": access_token}
+        )
+
+        print(result)
+
+        # Verify the access token
+        if not result['success']:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to store Google integration"
+            )
+
+
+        return {"success": True}
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error: {str(e)}"
+        )
+
+
+@app.get("/api/py/google-calendars/{user_id}")
+async def get_google_calendars(user_id: str):
+    try:
+        # Query the database for Google integration
+        result = select_data(
+            supabase=supabase,
+            table="google_integrations",
+            columns="*",
+            filters={"user_id": user_id},
+            limit=1
+        )
+
+        return result[0]
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error: {str(e)}"
+        )
