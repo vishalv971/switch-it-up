@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import json
 import httpx
+from pydantic import BaseModel
 load_dotenv()
 
 # Configure Gemini API
@@ -34,57 +35,47 @@ class GeminiService:
         4. Main takeaways and next steps
         
         Format it as a proper journal entry with date, clear paragraphs, and a conclusion.
-
-        After creating the journal entry, you MUST save it using this function:
-        save_to_notion(title: str, content: str) -> None
         
-        The title should be a brief, descriptive summary of the conversation.
-        The content should be the full journal entry with markdown formatting.
+        Return ONLY a JSON object with exactly this format:
+        {{
+            "title": "Brief descriptive title",
+            "content": "Full markdown journal entry"
+        }}
 
         Transcript:
         {transcript}
         """
-        
+
         try:
-            response = await self.model.generate_content_async(
-                prompt,
-                tools=[{
-                    "function": "save_to_notion",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "title": {
-                                "type": "string",
-                                "description": "The title of the journal entry"
-                            },
-                            "content": {
-                                "type": "string",
-                                "description": "The content of the journal entry in markdown format"
-                            }
-                        },
-                        "required": ["user_id", "title", "content"]
-                    }
-                }]
-            )
+            response = await self.model.generate_content_async(prompt)
             
-            # Extract the function call from the response
-            function_call = response.candidates[0].content.parts[0].function_call
+            if not response.candidates or not response.candidates[0].content:
+                raise Exception("No valid response received from Gemini")
+            
+            # Get the text content and parse it as JSON
+            text_content = response.candidates[0].content.parts[0].text
+            text_content = text_content.replace('```json', '').replace('```', '')
+            print(text_content)
+            result = json.loads(text_content)
+            
+            if not isinstance(result, dict) or 'title' not in result or 'content' not in result:
+                raise Exception("Invalid JSON response format")
             
             # Make the actual API call
             async with httpx.AsyncClient() as client:
                 save_response = await client.post(
                     'http://localhost:3000/api/py/add-conv-hist',
                     json={
-                        "user_id": self.user_id,
-                        "title": function_call.args["title"],
-                        "content": function_call.args["content"]
+                        "user_id": user_id,
+                        "title": result['title'],
+                        "content": result['content']
                     }
                 )
                 save_response.raise_for_status()
                 
             return {
-                "title": function_call.args["title"],
-                "content": function_call.args["content"],
+                "title": result['title'],
+                "content": result['content'],
                 "saved_to_notion": True
             }
             

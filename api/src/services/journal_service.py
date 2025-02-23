@@ -63,8 +63,6 @@ class JournalService:
             print("Journal entry created")
             
             return {
-                "conversation_id": conversation_id,
-                "transcript": transcript,
                 "journal_entry": journal_entry,
                 "success": True
             }
