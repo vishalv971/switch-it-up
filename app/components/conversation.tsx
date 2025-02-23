@@ -63,10 +63,21 @@ export function ConvAI() {
     return data.conversation_id;
   }
 
-  async function getAgent() { 
+  async function getAgent() {
     const apiKey = process.env.NEXT_PUBLIC_XI_API_KEY;
+    if (!apiKey) {
+      console.error('XI API key not configured');
+      return null;
+    }
+
     const url = "https://api.elevenlabs.io/v1/convai/agents/vtmCVSkOxmw9xSFMaHMq";
-    const options = {method: 'GET', headers: {'xi-api-key': apiKey}};
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'xi-api-key': apiKey
+      } as Record<string, string>
+    };
+
     try {
       const response = await fetch(url, options);
       const data = await response.json();
@@ -80,8 +91,19 @@ export function ConvAI() {
 
   async function getLastestConversationSummary(conversationId: string) {
     const apiKey = process.env.NEXT_PUBLIC_XI_API_KEY;
+    if (!apiKey) {
+      console.error('XI API key not configured');
+      return null;
+    }
+
     const url = `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`;
-    const options = {method: 'GET', headers: {'xi-api-key': apiKey}};
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'xi-api-key': apiKey
+      } as Record<string, string>
+    };
+
     try {
       const response = await fetch(url, options);
       const data = await response.json();
@@ -93,7 +115,7 @@ export function ConvAI() {
         return null;
       }
     } catch (error) {
-      console.error(error); 
+      console.error(error);
       return null;
     }
   }
@@ -121,7 +143,7 @@ export function ConvAI() {
           systemPrompt = systemPrompt + `This is a summary of the last conversation between you and the user: ${conversationSummary} bring this up after the first message from the user`
         }
       }
-  
+
       // Tool calling function
       const clientTools = {
 
