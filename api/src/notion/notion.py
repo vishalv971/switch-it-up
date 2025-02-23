@@ -161,11 +161,11 @@ PAGE_TEMPLATES = {
 }
 
 
-def init_notion(notion,parent_id):
+def init_notion(notion):
 
     try:
         structure = {}
-
+        parent_id = get_all_pages(notion)[0]["id"]
         # Create Conversation History page
         parent = {"page_id": parent_id}
         
@@ -241,3 +241,35 @@ def init_notion(notion,parent_id):
             detail=f"Failed to initialize structure: {str(e)}"
         )
 
+def get_all_pages(notion):
+    """Get all pages"""
+    try:
+        response = notion.search(
+            filter={"property": "object", "value": "page"}
+        ).get("results", [])
+        
+        pages = []
+        for page in response:
+            try:
+                # Safely get title with multiple fallbacks
+                title = "Untitled"
+                if "properties" in page and "title" in page["properties"]:
+                    title_prop = page["properties"]["title"]
+                    if "title" in title_prop and title_prop["title"]:
+                        try:
+                            title = title_prop["title"][0]["text"]["content"]
+                        except (KeyError, IndexError):
+                            title = "Untitled"
+                
+                page_data = {
+                    "id": page["id"]
+                }
+                pages.append(page_data)
+            except Exception as page_error:
+                # Log the error but continue processing other pages
+                print(f"Error processing page: {str(page_error)}")
+                continue
+        
+        return pages
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

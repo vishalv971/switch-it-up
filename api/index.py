@@ -8,6 +8,7 @@ from pathlib import Path
 import logging
 import httpx
 import base64
+from notion_client import Client
 
 
 from api.src.db.supabase import (
@@ -217,7 +218,8 @@ async def notion_callback(request: Request):
             logger.info("Successfully obtained Notion access token")
 
             print(response_data)
-            conversations_page_id, todo_page_id = init_notion(response_data['workspace_id'])
+            notion_client = Client(auth=response_data['access_token'])
+            conversations_page_id, todo_page_id = init_notion(notion_client)
             # Store the access token in the database
             result = insert_data(
                 supabase=supabase,
