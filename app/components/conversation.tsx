@@ -74,7 +74,7 @@ export function ConvAI() {
     }
 
     // const url = "https://api.elevenlabs.io/v1/convai/agents/vtmCVSkOxmw9xSFMaHMq";
-    const url = "https://api.elevenlabs.io/v1/convai/agents/VGenfgBuajNVvNdF0oPj";
+    const url = "https://api.elevenlabs.io/v1/convai/agents/GNQli1Pa58OUuRvfnMXC";
     const options: RequestInit = {
       method: 'GET',
       headers: {
@@ -168,6 +168,7 @@ export function ConvAI() {
             timezone: timezone
           };
 
+
           console.log(eventData);
 
           const response = await fetch(`/api/py/calendar/events`, {
@@ -176,11 +177,44 @@ export function ConvAI() {
           });
           const data = await response.json();
           return JSON.stringify(data);
-        }
-      };
+        },
+
+        get_tasks: async () => {
+          console.log('Calling get_tasks');
+          const response = await fetch(`/api/py/get-todo-list/${user?.id}`);
+          const data = await response.json();
+          console.log(data);
+          return JSON.stringify(data);
+        },
+
+        create_task: async (task_info: any) => {
+          console.log('Creating task');
+          console.log(task_info);
+          const { title, description, due_date, priority } = task_info;
+          const taskData = {
+            user_id: user?.id,
+            name: title,
+            description: description,
+            due_date: due_date,
+            priority: priority
+          };
+
+          console.log(taskData);
+
+          const response = await fetch(`/api/py/add-todo-list`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(taskData)
+          });
+          const data = await response.json();
+          return JSON.stringify(data);
+        },
+      }
       console.log(`systemPrompt: ${systemPrompt}`);
       const conv = await Conversation.startSession({
-        agentId: 'VGenfgBuajNVvNdF0oPj',
+        agentId: 'GNQli1Pa58OUuRvfnMXC',
         // agentId: 'vtmCVSkOxmw9xSFMaHMq',
         overrides: {
           agent: {

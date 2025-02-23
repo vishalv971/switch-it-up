@@ -452,6 +452,9 @@ async def get_todo_list(user_id):
 async def add_todo_list(request: Request):
     try:
         data = await request.json()
+        print('--------------------------------')
+        print(data)
+        print('--------------------------------')
         user_id = data["user_id"]
         result = select_data(
             supabase=supabase,
@@ -460,18 +463,32 @@ async def add_todo_list(request: Request):
             filters={"user_id": user_id},
             limit=1
         )
+        print(result)
+        print('--------------------------------')
         todo_page_id = result[0]["todo_page_id"]
         
         notion_client = Client(auth=result[0]['access_token'])
 
         results = add_todo_item(notion_client,todo_page_id, data["name"],data["priority"],data["due_date"])
-
-        return results
+        if results:
+            res = {
+                "success": True,
+                "message": "Task added successfully"
+            }
+        else:
+            res = {
+                "success": False,
+                "message": "Failed to add task"
+            }
+        return res
     
 
     except HTTPException as he:
         raise he
     except Exception as e:
+        print('--------------------------------')
+        print(e)
+        print('--------------------------------')
         raise HTTPException(
             status_code=500,
             detail=f"Server error: {str(e)}"
