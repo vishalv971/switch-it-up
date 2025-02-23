@@ -19,7 +19,7 @@ Flo is an empathetic voice assistant that helps you manage stress, stay organize
 
 ## Architecture
 
-![Architecture Diagram](https://imgur.com/a/cvHVVjo)
+![Architecture Diagram](https://i.imgur.com/QBtMmhQ.png)
 
 ## Tech Stack
 
