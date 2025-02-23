@@ -73,7 +73,8 @@ export function ConvAI() {
       return null;
     }
 
-    const url = "https://api.elevenlabs.io/v1/convai/agents/vtmCVSkOxmw9xSFMaHMq";
+    // const url = "https://api.elevenlabs.io/v1/convai/agents/vtmCVSkOxmw9xSFMaHMq";
+    const url = "https://api.elevenlabs.io/v1/convai/agents/VGenfgBuajNVvNdF0oPj";
     const options: RequestInit = {
       method: 'GET',
       headers: {
@@ -142,28 +143,65 @@ export function ConvAI() {
           systemPrompt = systemPrompt + `This is a summary of the last conversation between you and the user: ${conversationSummary} bring this up after the first message from the user`
         }
       }
+  
+      // Tool calling function
+      const clientTools = {
+        list_events: async () => {
+          console.log('Calling list_events');
+          const response = await fetch(`/api/py/calendar/events?user_id=${user?.id}`);
+          const data = await response.json();
+          console.log(data);
+          return JSON.stringify(data);
+        },
 
+        create_event: async (event: any) => {
+          console.log(event);
+          const { title, start_time, end_time, description, location, attendees, timezone } = event;
+          const eventData = {
+            user_id: user?.id,
+            summary: title,
+            start_time: start_time,
+            end_time: end_time,
+            description: description,
+            location: location,
+            attendees: attendees,
+            timezone: timezone
+          };
+
+          console.log(eventData);
+
+          const response = await fetch(`/api/py/calendar/events`, {
+            method: 'POST',
+            body: JSON.stringify(eventData)
+          });
+          const data = await response.json();
+          return JSON.stringify(data);
+        }
+      };
+      console.log(`systemPrompt: ${systemPrompt}`);
       const conv = await Conversation.startSession({
-        agentId: 'vtmCVSkOxmw9xSFMaHMq',
+        agentId: 'VGenfgBuajNVvNdF0oPj',
+        // agentId: 'vtmCVSkOxmw9xSFMaHMq',
         overrides: {
           agent: {
             firstMessage: `Hey, ${user?.firstName}, how's it going?`,
             prompt: {prompt: systemPrompt}
           }
         },
+        clientTools: clientTools,
         onConnect: () => {
           setIsConnected(true);
           setIsSpeaking(true);
           setCurrentSpeaker('agent');
-          setAgentTranscript(`Hey, ${user?.firstName}, how's it going?`);
+          // setAgentTranscript(`Hey, ${user?.firstName}, how's it going?`);
           console.log('Connected');
         },
         onDisconnect: async () => {
           setIsConnected(false);
           setIsSpeaking(false);
           setCurrentSpeaker(null);
-          setUserTranscript('');
-          setAgentTranscript('');
+          // setUserTranscript('');
+          // setAgentTranscript('');
           console.log('Disconnected');
           stream?.getTracks().forEach(track => track.stop());
           try {
@@ -197,8 +235,9 @@ export function ConvAI() {
             setAgentTranscript(message);
           } else if (source === 'user') {
             setUserTranscript(message);
+          } else {
+            console.log(`${source} message:`, message);
           }
-          console.log(`${source} message:`, message);
         }
       });
 

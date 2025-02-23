@@ -42,6 +42,13 @@ logger = logging.getLogger(__name__)
 ### Create FastAPI instance with custom docs and openapi url
 app = FastAPI(docs_url="/api/py/docs", openapi_url="/api/py/openapi.json")
 
+# Import calendar routes
+from api.src.routes.calendar_routes import router as calendar_router
+
+# Include calendar routes
+app.include_router(calendar_router)
+
+
 @app.get("/api/py/helloFastApi")
 def hello_fast_api():
     return {"message": "Hello from FastAPI"}
@@ -99,7 +106,7 @@ async def user(request: Request):
             upsert=True
         )
 
-        logger.info(f"Database insert result: {result}")
+        print(f"Database insert result: {result}")
 
         if not result['success']:
             raise HTTPException(

@@ -81,15 +81,3 @@ def select_data(
         print(f"Error executing query: {str(e)}")
         return []
 
-
-def get_latest_conversation(
-    supabase, 
-    table,
-    columns = "*",
-    filters = None,
-    order_by = None,
-    limit = None,
-    offset = None
-):
-
-    query = supabase.table(table).select(columns)
