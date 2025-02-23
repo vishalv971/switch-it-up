@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CalendarIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { CalendarIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 
@@ -47,10 +48,16 @@ export function GoogleCalendarIntegration() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user) {
+      checkCalendarStatus();
+    }
+  }, [user]);
+
   const checkCalendarStatus = async () => {
     const response = await fetch(`/api/py/google-calendars/${user?.id}`);
     const data = await response.json();
-    if(data.success) {
+    if(data.access_token || data.user_id) {
       setIsConnected(true);
     } else {
       setIsConnected(false);
@@ -101,12 +108,6 @@ export function GoogleCalendarIntegration() {
     window.location.href = authUrl;
   };
 
-  const handleDisconnect = () => {
-    localStorage.removeItem('gcal_access_token');
-    setIsConnected(false);
-    setCalendars([]);
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4">
@@ -123,7 +124,7 @@ export function GoogleCalendarIntegration() {
           <h3 className="font-medium text-gray-900">Google Calendar</h3>
           <p className="text-xs sm:text-sm text-gray-500">
             {isConnected
-              ? `Connected (${calendars.length} calendars available)`
+              ? `Connected`
               : 'Connect your calendar to schedule tasks'}
           </p>
         </div>
@@ -135,12 +136,6 @@ export function GoogleCalendarIntegration() {
             <CheckCircleIcon className="h-5 w-5" />
             <span className="ml-2 text-sm font-medium">Connected</span>
           </div>
-          <button
-            onClick={handleDisconnect}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            Disconnect
-          </button>
         </div>
       ) : (
         <button
