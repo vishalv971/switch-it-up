@@ -1,11 +1,11 @@
 'use client';
 
+import { SignIn } from "@clerk/nextjs";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { ConvAI } from "../components/conversation";
 import { SettingsButton } from "../components/SettingsButton";
 import { CallLogButton } from "../components/CallLogButton";
 import { CalendarIcon, BoltIcon, HeartIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { SignInButton } from "../components/SignInButton";
 
 export default function Home() {
   return (
@@ -21,7 +21,7 @@ export default function Home() {
               An empathetic voice assistant that helps you manage stress, stay organized, and find your calm
             </p>
             <div className="flex justify-center">
-              <SignInButton />
+              <SignIn />
             </div>
           </div>
 
