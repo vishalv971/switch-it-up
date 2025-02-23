@@ -5,9 +5,10 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel    
 
 from api.src.config.calendar_config import DEFAULT_TIME_ZONE
+from api.index import supabase
 from api.src.services.gcal_service import GoogleCalendarService
 from api.src.db.supabase import select_data
-from api.index import supabase
+
 router = APIRouter(prefix="/api/py/calendar", tags=["calendar"])
 
 class Attendee(BaseModel):
