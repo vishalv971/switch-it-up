@@ -1,165 +1,5 @@
 from fastapi import HTTPException
 
-PAGE_TEMPLATES = {
-    "basic": {
-        "name": "Basic Page",
-        "blocks": [
-            {
-                "object": "block",
-                "type": "heading_1",
-                "heading_1": {
-                    "rich_text": [{"type": "text", "text": {"content": "Overview"}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {
-                    "rich_text": [{"type": "text", "text": {"content": ""}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "heading_2",
-                "heading_2": {
-                    "rich_text": [{"type": "text", "text": {"content": "Details"}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {
-                    "rich_text": [{"type": "text", "text": {"content": ""}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "to_do",
-                "to_do": {
-                    "rich_text": [{"type": "text", "text": {"content": "Add more content"}}],
-                    "checked": False
-                }
-            }
-        ]
-    },
-    "meeting": {
-        "name": "Meeting Notes",
-        "blocks": [
-            {
-                "object": "block",
-                "type": "heading_1",
-                "heading_1": {
-                    "rich_text": [{"type": "text", "text": {"content": "Meeting Details"}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {
-                    "rich_text": [{"type": "text", "text": {"content": "Date: "}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {
-                    "rich_text": [{"type": "text", "text": {"content": "Attendees: "}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "heading_2",
-                "heading_2": {
-                    "rich_text": [{"type": "text", "text": {"content": "Agenda"}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "bulleted_list_item",
-                "bulleted_list_item": {
-                    "rich_text": [{"type": "text", "text": {"content": ""}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "heading_2",
-                "heading_2": {
-                    "rich_text": [{"type": "text", "text": {"content": "Action Items"}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "to_do",
-                "to_do": {
-                    "rich_text": [{"type": "text", "text": {"content": ""}}],
-                    "checked": False
-                }
-            }
-        ]
-    },
-    "project": {
-        "name": "Project Plan",
-        "blocks": [
-            {
-                "object": "block",
-                "type": "heading_1",
-                "heading_1": {
-                    "rich_text": [{"type": "text", "text": {"content": "Project Overview"}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {
-                    "rich_text": [{"type": "text", "text": {"content": ""}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "heading_2",
-                "heading_2": {
-                    "rich_text": [{"type": "text", "text": {"content": "Objectives"}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "bulleted_list_item",
-                "bulleted_list_item": {
-                    "rich_text": [{"type": "text", "text": {"content": ""}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "heading_2",
-                "heading_2": {
-                    "rich_text": [{"type": "text", "text": {"content": "Timeline"}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {
-                    "rich_text": [{"type": "text", "text": {"content": ""}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "heading_2",
-                "heading_2": {
-                    "rich_text": [{"type": "text", "text": {"content": "Resources"}}]
-                }
-            },
-            {
-                "object": "block",
-                "type": "bulleted_list_item",
-                "bulleted_list_item": {
-                    "rich_text": [{"type": "text", "text": {"content": ""}}]
-                }
-            }
-        ]
-    }
-}
-
 
 def init_notion(notion):
 
@@ -183,7 +23,7 @@ def init_notion(notion):
                     ]
                 }
             },
-            children=PAGE_TEMPLATES["basic"]["blocks"] + [
+            children=[
                 {
                     "object": "block",
                     "type": "paragraph",
@@ -273,3 +113,144 @@ def get_all_pages(notion):
         return pages
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+def get_todo_items(notion, database_id):
+    """
+    Get all items from the todo list
+    
+    Args:
+        notion: Notion client instance
+        database_id: ID of the todo database
+    
+    Returns:
+        list: List of todo items
+    """
+    try:
+        response = notion.databases.query(
+            database_id=database_id,
+            sorts=[{
+                "property": "Priority",
+                "direction": "descending"
+            }]
+        )
+        
+        todo_items = []
+        for item in response["results"]:
+            todo_item = {
+                "id": item["id"],
+                "name": item["properties"]["Name"]["title"][0]["text"]["content"] if item["properties"]["Name"]["title"] else "",
+                "status": item["properties"]["Status"]["checkbox"],
+                "priority": item["properties"]["Priority"]["select"]["name"] if item["properties"]["Priority"]["select"] else "Low",
+                "due_date": item["properties"]["Due Date"]["date"]["start"] if item["properties"]["Due Date"]["date"] else None
+            }
+            todo_items.append(todo_item)
+            
+        return todo_items
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get todo items: {str(e)}"
+        )
+
+
+def add_todo_item(notion, database_id, name, priority="Low", due_date=None):
+    """
+    Add a new item to the todo list
+    
+    Args:
+        notion: Notion client instance
+        database_id: ID of the todo database
+        name: Name of the todo item
+        priority: Priority level (High, Medium, Low)
+        due_date: Due date for the item (ISO format date string)
+    
+    Returns:
+        dict: Created todo item
+    """
+    try:
+        data = {
+            "parent": {"database_id": database_id},
+            "properties": {
+                "Name": {
+                    "title": [
+                        {
+                            "text": {
+                                "content": name
+                            }
+                        }
+                    ]
+                },
+                "Status": {
+                    "checkbox": False
+                },
+                "Priority": {
+                    "select": {
+                        "name": priority
+                    }
+                }
+            }
+        }
+        
+        if due_date:
+            data["properties"]["Due Date"] = {
+                "date": {
+                    "start": due_date
+                }
+            }
+        print(data)    
+        new_item = notion.pages.create(**data)
+        
+        return new_item
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to add todo item: {str(e)}"
+        )
+
+def create_conv_page(notion,parent_id, title, content):
+
+    try:
+        # Create Conversation History page
+        parent = {"page_id": parent_id}
+        
+        # Create the Conversation History page with basic template
+        conversation_page = notion.pages.create(
+            parent=parent,
+            properties={
+                "title": {
+                    "title": [
+                        {
+                            "text": {
+                                "content": title
+                            }
+                        }
+                    ]
+                }
+            },
+            children=[
+                {
+                    "object": "block",
+                    "type": "paragraph",
+                    "paragraph": {
+                        "rich_text": [
+                            {
+                                "text": {
+                                    "content": content
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        )
+        
+        return conversation_page
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get todo items: {str(e)}"
+        )
+

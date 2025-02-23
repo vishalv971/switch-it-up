@@ -18,6 +18,10 @@ from api.src.db.supabase import (
 
 from api.src.notion.notion import(
     init_notion,
+    get_todo_items,
+    create_conv_page,
+    add_todo_item
+
 )
 
 # Load environment variables from .env.local in parent directory
@@ -417,3 +421,92 @@ async def get_google_calendars(user_id: str):
             status_code=500,
             detail=f"Server error: {str(e)}"
         )
+
+@app.get("/api/py/get-todo-list/{user_id}")
+async def get_todo_list(user_id):
+    try:
+        result = select_data(
+            supabase=supabase,
+            table="notion_integrations",
+            columns="access_token,todo_page_id",
+            filters={"user_id": user_id},
+            limit=1
+        )
+        todo_page_id = result[0]["todo_page_id"]
+        
+        notion_client = Client(auth=result[0]['access_token'])
+        results = get_todo_items(notion_client,todo_page_id)
+        return results
+    
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error: {str(e)}"
+        )
+    
+    
+@app.post("/api/py/add-todo-list")
+async def add_todo_list(request: Request):
+    try:
+        data = await request.json()
+        user_id = data["user_id"]
+        result = select_data(
+            supabase=supabase,
+            table="notion_integrations",
+            columns="access_token,todo_page_id",
+            filters={"user_id": user_id},
+            limit=1
+        )
+        todo_page_id = result[0]["todo_page_id"]
+        
+        notion_client = Client(auth=result[0]['access_token'])
+
+        results = add_todo_item(notion_client,todo_page_id, data["name"],data["priority"],data["due_date"])
+
+        return results
+    
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error: {str(e)}"
+        )
+    
+@app.post("/api/py/add-conv-hist")
+async def add_conv_hist(request: Request):
+    try:
+        data = await request.json()
+        print("here")
+        print(data)
+        user_id = data["user_id"]
+        result = select_data(
+            supabase=supabase,
+            table="notion_integrations",
+            columns="access_token,conversations_page_id",
+            filters={"user_id": user_id},
+            limit=1
+        )
+        conversations_page_id = result[0]["conversations_page_id"]
+        
+        notion_client = Client(auth=result[0]['access_token'])
+
+        results = create_conv_page(notion_client,conversations_page_id, data["title"], data["content"])
+
+        return results
+    
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error: {str(e)}"
+        )
+
+
+
