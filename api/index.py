@@ -17,7 +17,6 @@ from api.src.db.supabase import (
 
 from api.src.notion.notion import(
     init_notion,
-    get_parent_pageid
 )
 
 # Load environment variables from .env.local in parent directory
