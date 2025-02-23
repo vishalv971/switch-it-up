@@ -86,7 +86,7 @@ export default function Home() {
             <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
               <BoltIcon className="w-12 h-12 text-yellow-500 mb-4" />
               <h3 className="text-lg font-semibold mb-2 font-degular">Smart task focus</h3>
-              <p className="text-gray-600">Understands when you're overwhelmed, refines your focus, and helps you take the next step -- without cognitve overload.</p>
+              <p className="text-gray-600">Understands when you&apos;re overwhelmed, refines your focus, and helps you take the next step -- without cognitive overload.</p>
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
@@ -104,7 +104,7 @@ export default function Home() {
                   <span className="text-2xl font-bold text-blue-600">1</span>
                 </div>
                 <h3 className="text-lg font-semibold mb-2 font-degular">Speak your mind</h3>
-                <p className="text-gray-600">Start a voice call and share what's on your mind</p>
+                <p className="text-gray-600">Start a voice call and share what&apos;s on your mind</p>
               </div>
 
               <div className="text-center">
