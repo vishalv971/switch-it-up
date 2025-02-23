@@ -1,15 +1,18 @@
 'use client';
 
 import { useCallback, useState, useEffect } from 'react';
-import { Conversation } from "@11labs/client";
+import { Conversation, Role } from "@11labs/client";
 import { useUser } from '@clerk/nextjs';
-import { PhoneIcon, MicrophoneIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { PhoneIcon, MicrophoneIcon, XCircleIcon, UserIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 
 export function ConvAI() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userTranscript, setUserTranscript] = useState<string>('');
+  const [agentTranscript, setAgentTranscript] = useState<string>('');
+  const [currentSpeaker, setCurrentSpeaker] = useState<'user' | 'agent' | null>(null);
 
   const { user } = useUser();
 
@@ -120,7 +123,6 @@ export function ConvAI() {
     }
   }
 
-
   async function startConversation() {
     try {
       setError(null);
@@ -131,60 +133,16 @@ export function ConvAI() {
       }
 
       let agent = await getAgent();
-
       let systemPrompt = agent.conversation_config.agent.prompt.prompt;
-
       let conversationId = await getLatestConversationId();
 
       if (conversationId) {
         let conversationSummary = await getLastestConversationSummary(conversationId);
-        console.log(`conversationSummary: ${conversationSummary}`);
         if (conversationSummary) {
           systemPrompt = systemPrompt + `This is a summary of the last conversation between you and the user: ${conversationSummary} bring this up after the first message from the user`
         }
       }
 
-      // Tool calling function
-      const clientTools = {
-
-        get_last_conversation: async () => {
-          if (!user) return "No past conversations available";
-          try {
-            const apiKey = process.env.NEXT_PUBLIC_XI_API_KEY;
-            if (!apiKey) {
-              console.error('XI API key not configured');
-              return "Error: API key not configured";
-            }
-
-            const conversationId = await getLatestConversationId();
-            if (!conversationId) {
-              return "No past conversations found";
-            }
-
-            const url = `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`;
-            const options = {
-              method: 'GET',
-              headers: {
-                'xi-api-key': apiKey
-              } as Record<string, string>
-            };
-
-            const response = await fetch(url, options);
-            const data = await response.json();
-
-            if (response.ok) {
-              return data.analysis.transcript_summary;
-            } else {
-              console.error('Error fetching conversation:', data);
-              return "Error fetching past conversations";
-            }
-          } catch (error) {
-            console.error('Error fetching conversation:', error);
-            return "Error fetching past conversations";
-          }
-        }
-      };
-      console.log(`systemPrompt: ${systemPrompt}`);
       const conv = await Conversation.startSession({
         agentId: 'vtmCVSkOxmw9xSFMaHMq',
         overrides: {
@@ -196,31 +154,28 @@ export function ConvAI() {
         onConnect: () => {
           setIsConnected(true);
           setIsSpeaking(true);
+          setCurrentSpeaker('agent');
+          setAgentTranscript(`Hey, ${user?.firstName}, how's it going?`);
           console.log('Connected');
         },
         onDisconnect: async () => {
           setIsConnected(false);
           setIsSpeaking(false);
+          setCurrentSpeaker(null);
+          setUserTranscript('');
+          setAgentTranscript('');
           console.log('Disconnected');
           stream?.getTracks().forEach(track => track.stop());
-          console.log("Starting Disconect ");
           try {
             const response = await fetch('/api/py/conversations', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 user_id: user?.id,
                 conversation_id: conv.getId()
               }),
             });
-            console.log("Added conversation");
-            if (!response.ok) {
-              throw new Error('Failed to save conversation data');
-            }
-            console.log("Finished")
-
+            if (!response.ok) throw new Error('Failed to save conversation data');
             setConversation(null);
           } catch (error) {
             console.error('Error saving conversation data:', error);
@@ -233,8 +188,18 @@ export function ConvAI() {
         },
         onModeChange: ({ mode }) => {
           setIsSpeaking(mode === 'speaking');
+          const newSpeaker = mode === 'speaking' ? 'agent' : 'user';
+          setCurrentSpeaker(newSpeaker);
           console.log('Mode changed to:', mode);
         },
+        onMessage: ({ message, source }: { message: string; source: Role }) => {
+          if (source === 'ai') {
+            setAgentTranscript(message);
+          } else if (source === 'user') {
+            setUserTranscript(message);
+          }
+          console.log(`${source} message:`, message);
+        }
       });
 
       setConversation(conv);
@@ -244,8 +209,6 @@ export function ConvAI() {
       setError('Failed to start conversation');
     }
   }
-
-
 
   async function endConversation() {
     if (!conversation) return;
@@ -276,10 +239,10 @@ export function ConvAI() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto">
       {error && <div className="text-red-500 text-sm">{error}</div>}
 
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-4 w-full">
         {!isConnected ? (
           <button
             className="w-full md:w-auto bg-black text-white px-8 py-4 rounded-full outline-2 outline-transparent disabled:bg-gray-300 hover:bg-gray-800 transition-colors text-base md:text-lg flex items-center gap-2"
@@ -290,11 +253,11 @@ export function ConvAI() {
             Try a call
           </button>
         ) : (
-          <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col items-center gap-6 w-full">
             <div className="flex items-center justify-between w-full gap-4">
               <div className="flex items-center gap-2 px-6 py-3 bg-green-600 rounded-full text-white">
                 <MicrophoneIcon className="w-5 h-5 animate-pulse" />
-                Listening...
+                {currentSpeaker === 'agent' ? 'Agent is speaking...' : 'Listening...'}
               </div>
 
               <button
@@ -303,6 +266,22 @@ export function ConvAI() {
               >
                 <XCircleIcon className="w-6 h-6" />
               </button>
+            </div>
+
+            {/* Transcripts */}
+            <div className="w-full space-y-4">
+              {userTranscript && (
+                <div className="flex items-start gap-3 text-gray-700">
+                  <UserIcon className="w-6 h-6 mt-1 flex-shrink-0" />
+                  <p className="text-sm">{userTranscript}</p>
+                </div>
+              )}
+              {agentTranscript && (
+                <div className="flex items-start gap-3 text-gray-700">
+                  <ChatBubbleLeftIcon className="w-6 h-6 mt-1 flex-shrink-0" />
+                  <p className="text-sm">{agentTranscript}</p>
+                </div>
+              )}
             </div>
 
             {/* Wave Visualization */}
