@@ -143,16 +143,19 @@ export function ConvAI() {
       let systemPrompt = agent.conversation_config.agent.prompt.prompt;
       let conversationId = await getLatestConversationId();
       let firstMessage = agent.conversation_config.agent.firstMessage;
+      const today = new Date();
+      const formattedDate = today.toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' });
 
       if (conversationId) {
         let conversationSummary = await getLastestConversationSummary(conversationId);
         if (conversationSummary) {
-          systemPrompt = systemPrompt + `This is a summary of the last conversation between you and the user: ${conversationSummary} bring this up after the first message from the user`
+          systemPrompt = systemPrompt + `Today's date is ${formattedDate}. This is a summary of the last conversation between you and the user: ${conversationSummary} bring this up after the first message from the user`
         }
         firstMessage = `Hey, ${user?.firstName}, how's it going?`
       }
       else{
         firstMessage = `Hey ${user?.firstName}, I am Flo, a conversational AI agent that helps you break through mental friction and get into a state of flow. How can I help you today?`
+        systemPrompt = systemPrompt + `Today's date is ${formattedDate}.`
       }
 
       // Tool calling function
@@ -260,6 +263,18 @@ export function ConvAI() {
             });
             if (!response.ok) throw new Error('Failed to save conversation data');
             setConversation(null);
+            // let latestConversationId = conv.getId();
+            // let conversationSummary = await getLastestConversationSummary(latestConversationId);
+            // const title = `Conversation on ${new Date().toLocaleString()}`;
+            // await fetch('/api/py/add-conv-hist', {
+            //   method: 'POST',
+            //   headers: { 'Content-Type': 'application/json' },
+            //   body: JSON.stringify({
+            //     user_id: user?.id,
+            //     title: title,
+            //     content: conversationSummary
+            //   })
+            // });
           } catch (error) {
             console.error('Error saving conversation data:', error);
             setError('Failed to save conversation data');
